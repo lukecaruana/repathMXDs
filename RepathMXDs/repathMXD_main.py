@@ -99,36 +99,50 @@ def datetime():
 if __name__ == "__main__":
 
     # create a text file to log the script statistics
-    txtName = os.path.join(reportFolder, string.split(topLevel, "\\")[-1] + 
-    "_Repath_MXD_Log_" + datetime()[0] + "_" + datetime()[1] + ".txt")
+    txtName = os.path.join(reportFolder, "{base}_Repath_MXD_Log_{date}_{time}.txt".format(
+    base = string.split(topLevel, "\\")[-1],
+    date = datetime()[0],
+    time = datetime()[1]
+    ))
     
     txtFile = open(txtName, "w")
     
-    txtFile.write("Script started: " + datetime()[0] + " " + 
-    datetime()[1] + "\n")
+    txtFile.write("Script started: {date} {time}\n".format(
+    date = datetime()[0],
+    time = datetime()[1]
+    ))
     
-    arcpy.AddMessage("Script started: " + datetime()[0] + " " + datetime()[1])
+    arcpy.AddMessage("Script started: {date} {time}".format(
+    date = datetime()[0],
+    time = datetime()[1]
+    ))
     
     # Directs the script to the correct function based on whether subfolders are selected or not
     if subfolder == True:
-        arcpy.AddMessage("Searching for mxds in " + topLevel + 
-        " and subfolders...")
-        txtFile.write("Searching for mxds in " + topLevel + 
-        " and subfolders..." + "\n")
+        arcpy.AddMessage("Searching for mxds in {} and subfolders...".format(
+        topLevel))
+        txtFile.write("Searching for mxds in {} and subfolders...\n".format(
+        topLevel))
         
         checksubfolders(topLevel)
 
     if subfolder == False:
-        arcpy.AddMessage("Searching for mxds in " + topLevel + 
-        " only (no subfolders)...")
-        txtFile.write("Searching for mxds in " + topLevel + 
-        " and subfolders..." + "\n")
+        arcpy.AddMessage("Searching for mxds in {} only (no subfolders)...".format(
+        topLevel))
+        txtFile.write("Searching for mxds in {} only (no subfolders)...\n".format(
+        topLevel))
         
         nosubfolders(topLevel)
 
     # close text file at script completion
-    txtFile.write("\nScript log created: " + txtName + "\n" + 
-    "Script completed: " + datetime()[0] + " " + datetime()[1] + "\n")
-    arcpy.AddMessage("\nScript log created: " + txtName + "\n" 
-    + "Script completed: " + datetime()[0] + " " + datetime()[1])
+    txtFile.write("\nScript log created: {}\n".format(txtName)) 
+    txtFile.write("Script completed: {date} {time}\n".format(
+    date = datetime()[0],
+    time = datetime()[1]
+    ))
+    arcpy.AddMessage("\nScript log created: {}".format(txtName))
+    txtFile.write("Script completed: {date} {time}".format(
+    date = datetime()[0],
+    time = datetime()[1]
+    ))
     txtFile.close()

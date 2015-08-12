@@ -46,18 +46,22 @@ def crawlmxd(mxdPath):
 
     # creates a backup file of the original .mxd file (retains original metadata)
     # backup file is timestamped so it is not overwritten if script is run multiple times
-    copy = mxdPath + "." + datetime()[0] + "_" + datetime()[1] + ".bak"
+    copy = "{path}.{date}_{time}.bak".format(
+    path = mxdPath,
+    date = datetime()[0],
+    time = datetime()[1]
+    )
 
     # attempt to create backup file
     try:
         shutil.copy2(mxdPath, copy)
-        print "Backup of mxd created: " + copy
-        txtFile.write("Backup of mxd created: " + copy + "\n")
+        print "Backup of mxd created: {}".format(copy)
+        txtFile.write("Backup of mxd created: {}\n".format(copy))
 
     # if backup cannot be created, repath of this mxd is aborted
     except:
         print "\tCannot create mxd backup, mxd not updated"
-        txtFile.write("\tCannot create mxd backup, mxd not updated" + "\n")
+        txtFile.write("\tCannot create mxd backup, mxd not updated\n")
         sys.exit()
 
     # creates map document object from the current mxd file path
@@ -67,26 +71,26 @@ def crawlmxd(mxdPath):
     # aborts script if arcpy cannot handle .mxd file as a map document
     except:
         print "\tCannot open mxd, mxd not updated"
-        txtFile.write("\tCannot open mxd, mxd not updated" + "\n")
+        txtFile.write("\tCannot open mxd, mxd not updated\n")
         sys.exit()       
 
     # within the current mxd, find all spatial layers
     print "\tScanning layers within mxd..."
-    txtFile.write("\tScanning layers within mxd..." + "\n")
+    txtFile.write("\tScanning layers within mxd...\n")
 
     # check spatial layers one-by-one
     for lyr in arcpy.mapping.ListLayers(mxd):
         lyrName = lyr.name
 
-        txtFile.write("\t" + lyrName + "\n")
-        arcpy.AddMessage("\t" + lyrName)
+        txtFile.write("\t{}\n".format(lyrName))
+        arcpy.AddMessage("\t{}".format(lyrName))
 
         # Only valid layers will be have repath attempted
         try:
             # if layer is a grounp layer, skip and check next layer
             if lyr.isGroupLayer == True:
-                print "\t\t" + "Group Layer..."
-                txtFile.write("\t\t" + "Group Layer..." + "\n")
+                print "\t\tGroup Layer..."
+                txtFile.write("\t\tGroup Layer...\n")
                 continue
             
             # if layer is not a group layer, attempt to run the repathlayer function
@@ -95,31 +99,33 @@ def crawlmxd(mxdPath):
 
         # if repathlayer funciton cannot be run on current layer, list as an error in text file report
         except:
-            print "\t" + lyrName
-            txtFile.write("\t" + lyrName + "\n")   
-            print "\t\tLayer skipped - Error in getting source information for layer, check layer manually"
-            txtFile.write("\t\tLayer skipped - Error in getting source information for layer, check layer manually" + "\n")
+            print "\t{}".format(lyrName)
+            txtFile.write("\t{}\n".format(lyrName))   
+            print "\t\tLayer skipped - Error in getting source information for layer",
+            " check layer manually"
+            txtFile.write("\t\tLayer skipped - Error in getting source information for layer,")
+            txtFile.write(" check layer manually\n")
 
     # Check for existence of tables within mxds
     if arcpy.mapping.ListTableViews(mxd) != []:
         print "\n\tNon-spatial, Table Layers: "
-        txtFile.write("\n\tNon-spatial, Table Layers: " + "\n")
+        txtFile.write("\n\tNon-spatial, Table Layers: \n")
 
         # if table layers exist, attempt to run through the repathlayer function
         for lyr in arcpy.mapping.ListTableViews(mxd):
             lyrName = lyr.name
-            print "\t" + lyrName
-            txtFile.write("\t" + lyrName + "\n")
+            print "\t{}".format(lyrName)
+            txtFile.write("\t{}\n".format(lyrName))
             
             try:
                 repathlayer(lyr, oldRoot, newRoot)
 
             # if repathlayer funciton cannot be run on current layer, list as an error in text file report
             except:
-                print "\t" + lyrName
-                txtFile.write("\t" + lyrName + "\n")                 
-                print "\t\t" + "Error in getting source information for layer"
-                txtFile.write("\t\t" + "Error in getting source information for layer" + "\n")
+                print "\t{}".format(lyrName)
+                txtFile.write("\t{}\n".format(lyrName))                 
+                print "\t\tError in getting source information for layer"
+                txtFile.write("\t\tError in getting source information for layer\n")
 
     # save mxd
     try:
@@ -128,7 +134,11 @@ def crawlmxd(mxdPath):
         
         # to avoid errors with saving a currently opened mxd which potentially has database connections active
         # a temporary copy of the mxd is saved. Timestamp is used so the script can be run multiple times.
-        temp = string.replace(mxdPath, ".mxd", "_" + datetime()[0] + "_" + datetime()[1] + ".mxd")
+        temp = string.replace(mxdPath, ".mxd", "_{date}_{time}.mxd".format(
+        date = datetime()[0],
+        time = datetime()[1]
+        ))
+        
         mxd.saveACopy(temp)
         del mxd
 
@@ -140,12 +150,12 @@ def crawlmxd(mxdPath):
         del temp
 
         print "MXD saved successfully"
-        txtFile.write("MXD saved successfully" + "\n")
+        txtFile.write("MXD saved successfully\n")
 
     # if mxd cannot be re-saved, list as an error in the text file report   
     except:
         print "\tERROR: mxd not updated, unable to save updates to mxd"
-        txtFile.write("\tERROR: mxd not updated, unable to save updates to mxd" + "\n")
+        txtFile.write("\tERROR: mxd not updated, unable to save updates to mxd\n")
 
 # repathlayer function attempts to change the data source path of and input layer from the crawlmxds function
 def repathlayer(lyr, oldRoot, newRoot):
@@ -166,17 +176,17 @@ def repathlayer(lyr, oldRoot, newRoot):
         # arcpy function to replace old workspace path with new workspace path
         lyr.findAndReplaceWorkspacePath(workspacePath, newPath, False)
         
-        print "\t\tOld workspace path: " + workspacePath
-        txtFile.write("\t\tOld workspace path: " + workspacePath + "\n")
-        print "\t\tNew workspace path: " + newPath
-        txtFile.write("\t\tNew workspace path: " + newPath + "\n")
+        print "\t\tOld workspace path: {}".format(workspacePath)
+        txtFile.write("\t\tOld workspace path: {}\n".format(workspacePath))
+        print "\t\tNew workspace path: {}".format(newPath)
+        txtFile.write("\t\tNew workspace path: {}\n".format(newPath))
         return
 
 if __name__ == "__main__":
     ''' Start the repath mxd process from spawned variables'''
     
-    print "\nStarting: " + mxdPath
-    txtFile.write("\nStarting: " + mxdPath + "\n")
+    print "\nStarting: {}".format(mxdPath)
+    txtFile.write("\nStarting: {}\n".format(mxdPath))
     
     # Before progressing on current mxd, tests its validity by attempting to open and look at layers within
     try:
@@ -186,8 +196,8 @@ if __name__ == "__main__":
     
     # if validation test fails, abort process and return to parent script, list error in text file report
     except:
-        print "\t" + mxdPath + " is not a valid mxd"
-        txtFile.write("\t" + mxdPath + " is not a valid mxd" + "\n")
+        print "\t{} is not a valid mxd".format(mxdPath)
+        txtFile.write("\t{} is not a valid mxd\n".format(mxdPath))
         sys.exit()
     
     # If mxd passes validation test, run the crawl mxd function using current mxd path as input  
@@ -195,4 +205,4 @@ if __name__ == "__main__":
     
     # Spawned scirpt is complete, return to parent script
     print "\nMXD Repath Complete..."
-    txtFile.write("\nMXD Repath Complete..." + "\n")
+    txtFile.write("\nMXD Repath Complete...\n")
